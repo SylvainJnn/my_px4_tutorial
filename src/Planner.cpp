@@ -58,6 +58,11 @@ Planner::~Planner()
 // ### Subscribers ###
 // ###################
 
+/**
+ * @brief test
+ * 
+ * @param odom_msg 
+ */
 void Planner::vehicle_odometry_callback(const px4_msgs::msg::VehicleOdometry::SharedPtr odom_msg)
 {
 	_current_odom_msg = odom_msg;
