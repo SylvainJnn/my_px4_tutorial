@@ -59,9 +59,8 @@ Planner::~Planner()
 // ###################
 
 /**
- * @brief test
- * 
- * @param odom_msg 
+ * @brief Call back function of the odometry
+ * @param odom_msg: odometry message
  */
 void Planner::vehicle_odometry_callback(const px4_msgs::msg::VehicleOdometry::SharedPtr odom_msg)
 {
@@ -74,7 +73,8 @@ void Planner::vehicle_odometry_callback(const px4_msgs::msg::VehicleOdometry::Sh
 }
 
 /**
- * @brief simple takeoff -> drone arms, takes off for 7 secondes and then disarms 
+ * @brief setup the drone: get initial pose and arm the drone
+ * @param controller: drone's controler
 */
 void Planner::setup(OffboardControl& controller) // mettre const pour protéger ? 
 {
@@ -82,6 +82,7 @@ void Planner::setup(OffboardControl& controller) // mettre const pour protéger 
 					 _current_odom_msg->position[1],
 					 _current_odom_msg->position[2]};
 
+	// hardcoded test for the follow poses function
 	_goal_poses.push_back({1,1,-5});
 	_goal_poses.push_back({2,-2,-5});
 	_goal_poses.push_back({5,3,-10});
@@ -93,6 +94,15 @@ void Planner::setup(OffboardControl& controller) // mettre const pour protéger 
 	controller.arm();
 }
 
+/**
+ * @brief check if the drone reached the goal.
+ * 
+ * @param pose: array that represents current drone's pose
+ * @param goal: array that represents drone's goal
+ * @param tolerance: tolerance value to reach the goal
+ * @return true goal is receahed
+ * @return false goal is not reached
+ */
 bool Planner::is_goal_reached(std::array<float,3> pose, std::array<float,3> goal, float tolerance)
 {
 	return((std::abs(pose[0] - goal[0]) <= tolerance) &&
@@ -101,7 +111,8 @@ bool Planner::is_goal_reached(std::array<float,3> pose, std::array<float,3> goal
 }
 
 /**
- * @brief simple takeoff -> drone arms, takes off for 7 secondes and then disarms 
+ * @brief simple takeoff -> drone arms, takes off for 7 secondes and then disarms
+ * @param controller: drone's controler
 */
 void Planner::take_off(OffboardControl& controller)
 {
@@ -128,7 +139,8 @@ void Planner::take_off(OffboardControl& controller)
 }
 
 /**
- * @brief do a sware around the global origin. control position
+ * @brief: does a sqare around the global origin. Control in position
+ * @param controller: drone's controler
 */
 void Planner::square_hardcoded(OffboardControl& controller)
 {
@@ -201,7 +213,12 @@ void Planner::square_hardcoded(OffboardControl& controller)
 	}
 }
 
-
+/**
+ * @brief: makes the drone reach every positions of goal_poses
+ * 
+ * @param controller: drone's controler
+ * @param goal_poses: vector of 3D poses to reach
+ */
 void Planner::follow_position(OffboardControl& controller, std::vector<std::array<float,3>>& goal_poses)
 {
 	RCLCPP_INFO(this->get_logger(), "Enter follow position");
@@ -209,7 +226,7 @@ void Planner::follow_position(OffboardControl& controller, std::vector<std::arra
 	std::array<float,3> current_goal;
 	
 	int counter = 1;
-	while(!goal_poses.empty())
+	while(!goal_poses.empty()) // check if there are other goals to reach
 	{
 		// current goal is the first element in goal_poses
 		current_goal = goal_poses[0];
@@ -230,7 +247,10 @@ void Planner::follow_position(OffboardControl& controller, std::vector<std::arra
 }
 
 /**
- * @brief makes the drone goes to the given position
+ * @brief makes the drone goes to the given position of goal_pose 
+ * 
+ * @param controller: drone's controler
+ * @param goal_pose: 3D array containing one goal to reach
 */
 void Planner::go_to_pose(OffboardControl& controller, std::array<float,3> goal_pose)
 {
@@ -266,6 +286,8 @@ void Planner::go_to_pose(OffboardControl& controller, std::array<float,3> goal_p
 
 /**
  * @brief go back to initial position 
+ * 
+ * @param home_pose: position to reach back
 */
 void Planner::go_back(OffboardControl& controller, std::array<float,3> home_pose)
 {
